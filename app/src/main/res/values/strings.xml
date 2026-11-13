@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SJ Gallery</string>
+
+    <!-- Common -->
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="create">Create</string>
+    <string name="back">Back</string>
+    <string name="settings">Settings</string>
+
+    <!-- Gallery list -->
+    <string name="new_gallery">New gallery</string>
+    <string name="gallery_name">Gallery name</string>
+    <string name="no_galleries">No galleries yet. Create one to get started.</string>
+    <string name="manage_gallery">Manage gallery</string>
+    <plurals name="photo_count">
+        <item quantity="one">%d photo</item>
+        <item quantity="other">%d photos</item>
+    </plurals>
+
+    <!-- Gallery management -->
+    <string name="add_photos">Add photos</string>
+    <string name="play_slideshow">Play slideshow</string>
+    <string name="rename_gallery">Rename gallery</string>
+    <string name="delete_gallery">Delete gallery</string>
+    <string name="delete_gallery_message">Delete \"%1$s\" and every photo copied into it? The original files you imported from are not affected.</string>
+    <string name="no_photos">This gallery is empty. Add some photos to start a slideshow.</string>
+    <string name="importing_progress">Importing %1$d of %2$d…</string>
+    <string name="clear_selection">Clear selection</string>
+    <string name="delete_selected">Remove selected photos</string>
+    <string name="selected">Selected</string>
+    <plurals name="selected_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <plurals name="delete_photos_message">
+        <item quantity="one">Remove %d photo from this gallery?</item>
+        <item quantity="other">Remove %d photos from this gallery?</item>
+    </plurals>
+    <plurals name="import_failed">
+        <item quantity="one">%d file could not be imported.</item>
+        <item quantity="other">%d files could not be imported.</item>
+    </plurals>
+
+    <!-- Slideshow -->
+    <string name="slideshow_empty">This gallery has no photos.</string>
+
+    <!-- Settings -->
+    <string name="slide_duration">Time per photo</string>
+    <plurals name="seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <string name="scale_mode">Photo scaling</string>
+    <string name="scale_fit">Fit: show the whole photo</string>
+    <string name="scale_fill">Fill: crop to cover the screen</string>
+    <string name="transition">Transition</string>
+    <string name="transition_none">None</string>
+    <string name="transition_crossfade">Crossfade</string>
+    <string name="optimize_on_import">Shrink photos on import</string>
+    <string name="optimize_on_import_description">Downscale photos larger than this screen to save storage. Animated images are always kept as-is.</string>
+</resources>
