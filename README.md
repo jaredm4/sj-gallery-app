@@ -1,10 +1,12 @@
 # SJ Gallery
 
-A small, private Android slideshow app. Build galleries from your own photos,
+A small, simple Android slideshow app. Build galleries from your own photos,
 tap one, and it plays full screen in a freshly shuffled order.
 
 Built for personal use and installed by sideloading; it is not published on
-any app store.
+any app store. I could not find a good slideshow gallery app on the app store that didn't have many compromises (ads, photo count limits, lack of privacy, etc), so built this one.
+
+Bare bones, but works well.
 
 ## Features
 
