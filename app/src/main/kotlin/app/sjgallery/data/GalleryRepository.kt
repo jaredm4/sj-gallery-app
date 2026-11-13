@@ -1,8 +1,11 @@
 package app.sjgallery.data
 
+import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import app.sjgallery.data.media.CoverGenerator
+import app.sjgallery.data.media.CropRegion
+import app.sjgallery.data.media.PhotoCropper
 import app.sjgallery.data.media.PhotoImporter
 import app.sjgallery.data.model.Gallery
 import app.sjgallery.data.model.Library
@@ -55,6 +58,7 @@ class GalleryRepository(
     private val galleriesDir: File,
     private val store: LibraryStore,
     private val importer: PhotoImporter,
+    private val cropper: PhotoCropper,
     private val coverGenerator: CoverGenerator,
     private val settings: SettingsRepository,
     private val scope: CoroutineScope,
@@ -170,6 +174,55 @@ class GalleryRepository(
             }
         }
     }
+
+    /** Decodes a preview of a stored photo for the crop editor; null if it no longer exists. */
+    suspend fun loadCropPreview(galleryId: String, photoId: String): Bitmap? =
+        withContext(ioDispatcher) {
+            findPhoto(galleryId, photoId)?.let { cropper.loadPreview(photoFile(galleryId, it)) }
+        }
+
+    /**
+     * Permanently replaces the stored copy of a photo with the given part of
+     * it. The cropped image is written to a new file, so cached renderings of
+     * the old one are never shown again.
+     */
+    suspend fun cropPhoto(galleryId: String, photoId: String, region: CropRegion) {
+        withContext(NonCancellable) {
+            val photo = findPhoto(galleryId, photoId) ?: return@withContext
+            val shrinkToScreen = settings.settings.first().optimizeOnImport
+            val directory = galleryDir(galleryId)
+            val oldFile = photoFile(galleryId, photo)
+            val newFileName = withContext(ioDispatcher) {
+                cropper.crop(oldFile, directory, region, shrinkToScreen)
+            }
+
+            var replaced = false
+            mutateGallery(galleryId) { gallery ->
+                gallery.copy(
+                    photos = gallery.photos.map {
+                        if (it.id == photoId) {
+                            replaced = true
+                            it.copy(fileName = newFileName)
+                        } else {
+                            it
+                        }
+                    },
+                )
+            }
+
+            withContext(ioDispatcher) {
+                // If the photo was removed while cropping, discard the new file instead.
+                if (replaced) oldFile.delete() else File(directory, newFileName).delete()
+            }
+            if (replaced) refreshCover(galleryId)
+        }
+    }
+
+    private suspend fun findPhoto(galleryId: String, photoId: String): Photo? =
+        galleries.filterNotNull().first()
+            .firstOrNull { it.id == galleryId }
+            ?.photos
+            ?.firstOrNull { it.id == photoId }
 
     /** @return false if the gallery no longer exists. */
     private suspend fun appendPhotos(galleryId: String, photos: List<Photo>): Boolean {

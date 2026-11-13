@@ -2,6 +2,7 @@ package app.sjgallery.data.media
 
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
 /**
@@ -22,4 +23,15 @@ internal fun decodeSoftwareBitmap(
         decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
         configure(decoder, info)
     }
+}
+
+private const val JPEG_QUALITY = 90
+
+/**
+ * Compresses a bitmap for storage: PNG where there is transparency to keep,
+ * otherwise JPEG, which is far smaller for photos.
+ */
+internal fun Bitmap.encodeForStorage(): ByteArray {
+    val format = if (hasAlpha()) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
+    return ByteArrayOutputStream().also { compress(format, JPEG_QUALITY, it) }.toByteArray()
 }

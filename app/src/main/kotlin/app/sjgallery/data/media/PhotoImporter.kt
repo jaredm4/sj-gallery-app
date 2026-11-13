@@ -1,11 +1,9 @@
 package app.sjgallery.data.media
 
 import android.content.ContentResolver
-import android.graphics.Bitmap
 import android.net.Uri
 import app.sjgallery.data.crypto.CryptoManager
 import app.sjgallery.data.model.Photo
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.util.UUID
@@ -51,7 +49,7 @@ class PhotoImporter(
         val payload = try {
             if (downscaled) {
                 // Guard against the rare case where re-encoding makes things bigger.
-                bitmap.encode().takeIf { it.size < original.size } ?: original
+                bitmap.encodeForStorage().takeIf { it.size < original.size } ?: original
             } else {
                 original
             }
@@ -66,14 +64,7 @@ class PhotoImporter(
         return Photo(id = id, fileName = fileName, animated = animated)
     }
 
-    private fun Bitmap.encode(): ByteArray {
-        // Keep transparency where it exists; otherwise JPEG is far smaller.
-        val format = if (hasAlpha()) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
-        return ByteArrayOutputStream().also { compress(format, JPEG_QUALITY, it) }.toByteArray()
-    }
-
     private companion object {
-        const val JPEG_QUALITY = 90
         const val VALIDATION_SAMPLE_SIZE = 8
     }
 }

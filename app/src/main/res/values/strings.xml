@@ -44,6 +44,12 @@
         <item quantity="other">%d files could not be imported.</item>
     </plurals>
 
+    <!-- Crop -->
+    <string name="crop_photo">Crop photo</string>
+    <string name="crop_hint">Drag and pinch to position the photo inside the frame.</string>
+    <string name="frame_portrait">Frame: portrait screen</string>
+    <string name="frame_landscape">Frame: landscape screen</string>
+
     <!-- Slideshow -->
     <string name="slideshow_empty">This gallery has no photos.</string>
 

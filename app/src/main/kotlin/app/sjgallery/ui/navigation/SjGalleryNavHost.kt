@@ -9,6 +9,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import app.sjgallery.ui.crop.CropScreen
 import app.sjgallery.ui.galleries.GalleryListScreen
 import app.sjgallery.ui.gallery.GalleryDetailScreen
 import app.sjgallery.ui.settings.SettingsScreen
@@ -16,18 +17,24 @@ import app.sjgallery.ui.slideshow.SlideshowScreen
 
 private object Routes {
     const val ARG_GALLERY_ID = "galleryId"
+    const val ARG_PHOTO_ID = "photoId"
 
     const val GALLERIES = "galleries"
     const val SETTINGS = "settings"
     const val GALLERY = "gallery/{$ARG_GALLERY_ID}"
     const val SLIDESHOW = "slideshow/{$ARG_GALLERY_ID}"
+    const val CROP = "crop/{$ARG_GALLERY_ID}/{$ARG_PHOTO_ID}"
 
     fun gallery(id: String) = "gallery/$id"
     fun slideshow(id: String) = "slideshow/$id"
+    fun crop(galleryId: String, photoId: String) = "crop/$galleryId/$photoId"
 }
 
+private fun NavBackStackEntry.requireArg(name: String): String =
+    checkNotNull(arguments?.getString(name)) { "Missing navigation argument: $name" }
+
 private val NavBackStackEntry.galleryId: String
-    get() = checkNotNull(arguments?.getString(Routes.ARG_GALLERY_ID)) { "Missing gallery id" }
+    get() = requireArg(Routes.ARG_GALLERY_ID)
 
 @Composable
 fun SjGalleryNavHost() {
@@ -46,11 +53,19 @@ fun SjGalleryNavHost() {
                 GalleryDetailScreen(
                     galleryId = entry.galleryId,
                     onPlay = { navController.navigate(Routes.slideshow(entry.galleryId)) },
+                    onCropPhoto = { photoId -> navController.navigate(Routes.crop(entry.galleryId, photoId)) },
                     onBack = { navController.popBackStack() },
                 )
             }
             composable(Routes.SLIDESHOW) { entry ->
                 SlideshowScreen(galleryId = entry.galleryId)
+            }
+            composable(Routes.CROP) { entry ->
+                CropScreen(
+                    galleryId = entry.galleryId,
+                    photoId = entry.requireArg(Routes.ARG_PHOTO_ID),
+                    onDone = { navController.popBackStack() },
+                )
             }
             composable(Routes.SETTINGS) {
                 SettingsScreen(onBack = { navController.popBackStack() })

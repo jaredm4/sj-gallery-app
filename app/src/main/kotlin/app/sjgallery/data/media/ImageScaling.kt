@@ -32,3 +32,25 @@ fun sampleSizeFor(width: Int, height: Int, minEdge: Int): Int {
     while (shortest / (sampleSize * 2) >= minEdge) sampleSize *= 2
     return sampleSize
 }
+
+/**
+ * A rectangular part of an image, expressed as fractions (0..1) of its width
+ * and height so it is independent of the resolution it was chosen at.
+ */
+data class CropRegion(val left: Float, val top: Float, val right: Float, val bottom: Float) {
+    companion object {
+        val Full = CropRegion(0f, 0f, 1f, 1f)
+    }
+}
+
+data class PixelRect(val left: Int, val top: Int, val width: Int, val height: Int)
+
+/** Maps the region onto an image of the given size; always at least 1x1 and in bounds. */
+fun CropRegion.toPixelRect(imageWidth: Int, imageHeight: Int): PixelRect {
+    require(imageWidth > 0 && imageHeight > 0) { "Dimensions must be positive" }
+    val l = (left * imageWidth).roundToInt().coerceIn(0, imageWidth - 1)
+    val t = (top * imageHeight).roundToInt().coerceIn(0, imageHeight - 1)
+    val r = (right * imageWidth).roundToInt().coerceIn(l + 1, imageWidth)
+    val b = (bottom * imageHeight).roundToInt().coerceIn(t + 1, imageHeight)
+    return PixelRect(left = l, top = t, width = r - l, height = b - t)
+}

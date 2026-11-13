@@ -66,14 +66,15 @@ import coil3.compose.AsyncImage
 private enum class DetailDialog { RENAME, DELETE_GALLERY, DELETE_PHOTOS }
 
 /**
- * Manage one gallery: add photos, select and remove photos, rename or delete
- * the gallery. Tapping a photo toggles its selection.
+ * Manage one gallery: add photos, select photos to crop or remove them, rename
+ * or delete the gallery. Tapping a photo toggles its selection.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GalleryDetailScreen(
     galleryId: String,
     onPlay: () -> Unit,
+    onCropPhoto: (photoId: String) -> Unit,
     onBack: () -> Unit,
 ) {
     val viewModel = appViewModel(key = galleryId) { GalleryDetailViewModel(galleryId, it.galleries) }
@@ -84,6 +85,13 @@ fun GalleryDetailScreen(
     val selectedCount = state.selectedPhotoIds.size
     val selecting = selectedCount > 0
     val importing = state.importProgress != null
+    // Cropping applies to exactly one still image; it would flatten an animation.
+    val croppablePhotoId = remember(gallery.photos, state.selectedPhotoIds) {
+        state.selectedPhotoIds.singleOrNull()
+            ?.let { id -> gallery.photos.firstOrNull { it.id == id } }
+            ?.takeUnless { it.animated }
+            ?.id
+    }
     var dialog by rememberSaveable { mutableStateOf<DetailDialog?>(null) }
 
     // The system file picker, rather than the photo picker, so any number of
@@ -117,6 +125,16 @@ fun GalleryDetailScreen(
                         }
                     },
                     actions = {
+                        croppablePhotoId?.let { photoId ->
+                            IconButton(
+                                onClick = {
+                                    viewModel.clearSelection()
+                                    onCropPhoto(photoId)
+                                },
+                            ) {
+                                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.crop_photo))
+                            }
+                        }
                         IconButton(onClick = { dialog = DetailDialog.DELETE_PHOTOS }) {
                             Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_selected))
                         }
