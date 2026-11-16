@@ -100,6 +100,12 @@ fun SettingsScreen(onBack: () -> Unit) {
 
             HorizontalDivider()
             SwitchRow(
+                title = stringResource(R.string.crop_on_import),
+                description = stringResource(R.string.crop_on_import_description),
+                checked = settings.cropOnImport,
+                onCheckedChange = viewModel::setCropOnImport,
+            )
+            SwitchRow(
                 title = stringResource(R.string.optimize_on_import),
                 description = stringResource(R.string.optimize_on_import_description),
                 checked = settings.optimizeOnImport,

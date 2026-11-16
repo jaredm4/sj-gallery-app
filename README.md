@@ -24,8 +24,10 @@ Bare bones, but works well.
   the originals can be moved or deleted afterwards.
 - **Encrypted at rest**: every photo, cover and the gallery catalogue is
   encrypted with AES-256-GCM (details below).
-- **Crop to your screen**: reposition a photo behind a frame shaped like the
-  device's screen, so "fill" mode shows the part you care about.
+- **Crop to your screen**: as each photo is added it is shown behind a frame
+  shaped like the device's screen, so you choose the part that fills it. The
+  crop is taken from the full-resolution original. Photos can be re-cropped
+  later too.
 - **Storage-friendly**: photos larger than the screen are downscaled on import
   (optional). Animated images are stored untouched.
 - **No permissions, no network.** The app cannot reach the internet.
@@ -35,10 +37,11 @@ Bare bones, but works well.
 | Where | Action |
 | --- | --- |
 | Home grid | Tap a gallery to play it. Tap its pencil button to manage it. |
-| Manage screen | **Add photos** opens the system file picker (multi-select). Tap photos to select them, then the bin icon removes them. With exactly one (non-animated) photo selected, the pencil icon opens the crop editor. The top bar has play, rename and delete-gallery. |
+| Manage screen | **Add photos** opens the system file picker (multi-select), then the import review. Tap photos to select them, then the bin icon removes them. With exactly one (non-animated) photo selected, the pencil icon opens the crop editor. The top bar has play, rename and delete-gallery. |
+| Import review | Each picked photo appears in the crop frame, starting with the centred fill crop. Drag and pinch to adjust, then **Add photo**, **Skip**, or **Add all remaining** to take the centred crop for the rest. Can be turned off in settings. |
 | Crop editor | Drag and pinch the photo behind the fixed frame; the button underneath flips the frame between portrait and landscape. The tick saves. |
 | Slideshow | Tap the right half to skip forward, the left half to go back. Use the system back gesture to exit. |
-| Settings (gear icon) | Time per photo, fit/fill, transition, shrink-on-import. |
+| Settings (gear icon) | Time per photo, fit/fill, transition, crop-on-import, shrink-on-import. |
 
 ## Build and install
 
@@ -154,7 +157,13 @@ already small enough, and all animated images, are stored byte-for-byte.
 
 ### Cropping
 
-Cropping permanently replaces the gallery's private copy of a photo (the file
+With *Crop photos on import* on (the default), a photo is cropped while it is
+still the full-size original and only then scaled to screen resolution, so
+zooming in costs no sharpness beyond what the source file has. Only as much
+of the original is decoded as the chosen area needs, which keeps memory use
+flat even for very large photos. With it off, photos are imported whole.
+
+Re-cropping a photo later permanently replaces the gallery's private copy of a photo (the file
 you originally imported from is never touched). The chosen area is stored as
 fractions of the image, so the low-resolution editor preview and the
 full-resolution crop agree. Animated images cannot be cropped, since that

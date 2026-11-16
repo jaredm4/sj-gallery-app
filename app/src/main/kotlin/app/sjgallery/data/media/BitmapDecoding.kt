@@ -35,3 +35,43 @@ internal fun Bitmap.encodeForStorage(): ByteArray {
     val format = if (hasAlpha()) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
     return ByteArrayOutputStream().also { compress(format, JPEG_QUALITY, it) }.toByteArray()
 }
+
+/**
+ * Decodes the part of an image selected by [region], reading only as much
+ * resolution as that part needs (see [decodeSizeForCrop]).
+ *
+ * @param region chooses the part to keep once the image's dimensions are known.
+ * @param maxOutputEdge longest edge wanted for the result, or null for no limit.
+ */
+internal fun decodeCropped(
+    bytes: ByteArray,
+    maxOutputEdge: Int?,
+    region: (width: Int, height: Int) -> CropRegion,
+): Bitmap {
+    var chosen = CropRegion.Full
+    val decoded = decodeSoftwareBitmap(bytes) { decoder, info ->
+        val width = info.size.width
+        val height = info.size.height
+        chosen = region(width, height)
+        val target = decodeSizeForCrop(width, height, chosen, maxOutputEdge)
+        if (target.width != width || target.height != height) {
+            decoder.setTargetSize(target.width, target.height)
+        }
+    }
+
+    val rect = chosen.toPixelRect(decoded.width, decoded.height)
+    var result = Bitmap.createBitmap(decoded, rect.left, rect.top, rect.width, rect.height)
+    // createBitmap may hand back the very same object when nothing was cut off.
+    if (result !== decoded) decoded.recycle()
+
+    if (maxOutputEdge != null) {
+        // Usually a no-op; only corrects rounding from the decode step.
+        val target = fitWithin(result.width, result.height, maxOutputEdge)
+        if (target.width != result.width || target.height != result.height) {
+            val scaled = Bitmap.createScaledBitmap(result, target.width, target.height, true)
+            if (scaled !== result) result.recycle()
+            result = scaled
+        }
+    }
+    return result
+}

@@ -50,6 +50,13 @@
     <string name="frame_portrait">Frame: portrait screen</string>
     <string name="frame_landscape">Frame: landscape screen</string>
 
+    <!-- Import review -->
+    <string name="import_review_title">Photo %1$d of %2$d</string>
+    <string name="add_photo">Add photo</string>
+    <string name="skip_photo">Skip</string>
+    <string name="add_remaining">Add all remaining</string>
+    <string name="stop_importing">Stop importing</string>
+
     <!-- Slideshow -->
     <string name="slideshow_empty">This gallery has no photos.</string>
 
@@ -65,6 +72,8 @@
     <string name="transition">Transition</string>
     <string name="transition_none">None</string>
     <string name="transition_crossfade">Crossfade</string>
+    <string name="crop_on_import">Crop photos on import</string>
+    <string name="crop_on_import_description">Review each photo as it is added and choose the part that fills the screen. Turn off to import whole photos without asking.</string>
     <string name="optimize_on_import">Shrink photos on import</string>
     <string name="optimize_on_import_description">Downscale photos larger than this screen to save storage. Animated images are always kept as-is.</string>
 </resources>

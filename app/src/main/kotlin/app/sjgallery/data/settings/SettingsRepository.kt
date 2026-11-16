@@ -25,6 +25,8 @@ data class Settings(
     val scaleMode: ScaleMode = ScaleMode.FIT,
     val transition: SlideTransition = SlideTransition.NONE,
     val optimizeOnImport: Boolean = true,
+    /** Review and crop each photo as it is added, rather than importing it whole. */
+    val cropOnImport: Boolean = true,
 ) {
     companion object {
         const val DEFAULT_SLIDE_SECONDS = 5
@@ -45,6 +47,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             scaleMode = enumValueOrDefault(prefs[Keys.SCALE_MODE], ScaleMode.FIT),
             transition = enumValueOrDefault(prefs[Keys.TRANSITION], SlideTransition.NONE),
             optimizeOnImport = prefs[Keys.OPTIMIZE_ON_IMPORT] ?: true,
+            cropOnImport = prefs[Keys.CROP_ON_IMPORT] ?: true,
         )
     }
 
@@ -64,6 +67,10 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[Keys.OPTIMIZE_ON_IMPORT] = enabled }
     }
 
+    suspend fun setCropOnImport(enabled: Boolean) {
+        dataStore.edit { it[Keys.CROP_ON_IMPORT] = enabled }
+    }
+
     private inline fun <reified T : Enum<T>> enumValueOrDefault(name: String?, default: T): T =
         enumValues<T>().firstOrNull { it.name == name } ?: default
 
@@ -72,5 +79,6 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val SCALE_MODE = stringPreferencesKey("scale_mode")
         val TRANSITION = stringPreferencesKey("transition")
         val OPTIMIZE_ON_IMPORT = booleanPreferencesKey("optimize_on_import")
+        val CROP_ON_IMPORT = booleanPreferencesKey("crop_on_import")
     }
 }

@@ -29,6 +29,10 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
         viewModelScope.launch { repository.setTransition(transition) }
     }
 
+    fun setCropOnImport(enabled: Boolean) {
+        viewModelScope.launch { repository.setCropOnImport(enabled) }
+    }
+
     fun setOptimizeOnImport(enabled: Boolean) {
         viewModelScope.launch { repository.setOptimizeOnImport(enabled) }
     }

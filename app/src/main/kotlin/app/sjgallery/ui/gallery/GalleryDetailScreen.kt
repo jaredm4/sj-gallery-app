@@ -75,9 +75,12 @@ fun GalleryDetailScreen(
     galleryId: String,
     onPlay: () -> Unit,
     onCropPhoto: (photoId: String) -> Unit,
+    onReviewImport: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val viewModel = appViewModel(key = galleryId) { GalleryDetailViewModel(galleryId, it.galleries) }
+    val viewModel = appViewModel(key = galleryId) {
+        GalleryDetailViewModel(galleryId, it.galleries, it.settings, it.pendingImports)
+    }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val state = uiState ?: return
     val gallery = state.gallery ?: return // Deleted; navigation is already on its way back.
@@ -97,7 +100,7 @@ fun GalleryDetailScreen(
     // The system file picker, rather than the photo picker, so any number of
     // images can be chosen at once from any storage provider.
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        viewModel.addPhotos(uris)
+        viewModel.onPhotosPicked(uris, onReview = onReviewImport)
     }
 
     val snackbarHostState = remember { SnackbarHostState() }

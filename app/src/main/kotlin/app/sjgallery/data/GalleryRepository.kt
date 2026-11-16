@@ -7,6 +7,7 @@ import app.sjgallery.data.media.CoverGenerator
 import app.sjgallery.data.media.CropRegion
 import app.sjgallery.data.media.PhotoCropper
 import app.sjgallery.data.media.PhotoImporter
+import app.sjgallery.data.media.PickedImage
 import app.sjgallery.data.model.Gallery
 import app.sjgallery.data.model.Library
 import app.sjgallery.data.model.Photo
@@ -66,6 +67,9 @@ class GalleryRepository(
 ) {
     /** Serialises every read-modify-write of the catalogue. */
     private val mutex = Mutex()
+
+    /** Lets reviewed imports run one at a time, bounding peak memory use. */
+    private val reviewedImportMutex = Mutex()
 
     private val _galleries = MutableStateFlow<List<Gallery>?>(null)
 
@@ -138,8 +142,11 @@ class GalleryRepository(
      * published through [imports] and the outcome through [importResults].
      * Photos are committed in batches so that an interrupted import keeps
      * everything finished so far.
+     *
+     * @param centerCropAspectRatio if set, each photo is cropped to the largest
+     *   centred area of this shape (width / height); otherwise it is kept whole.
      */
-    fun importPhotos(galleryId: String, sources: List<Uri>) {
+    fun importPhotos(galleryId: String, sources: List<Uri>, centerCropAspectRatio: Float? = null) {
         if (sources.isEmpty()) return
         scope.launch(ioDispatcher) {
             val optimize = settings.settings.first().optimizeOnImport
@@ -151,7 +158,11 @@ class GalleryRepository(
                 for (batch in sources.chunked(IMPORT_BATCH_SIZE)) {
                     val photos = batch.mapNotNull { source ->
                         val photo = try {
-                            importer.import(source, directory, optimize)
+                            if (centerCropAspectRatio != null) {
+                                importer.importCenterCropped(source, directory, centerCropAspectRatio, optimize)
+                            } else {
+                                importer.import(source, directory, optimize)
+                            }
                         } catch (e: Exception) {
                             Log.w(TAG, "Could not import $source", e)
                             null
@@ -172,6 +183,56 @@ class GalleryRepository(
             } finally {
                 _imports.update { it - galleryId }
             }
+        }
+    }
+
+    /**
+     * Loads a picked file for the import crop editor, or returns null if it is
+     * not a readable image.
+     */
+    suspend fun openForImport(source: Uri): PickedImage? = withContext(ioDispatcher) {
+        try {
+            importer.open(source)
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not open $source", e)
+            null
+        }
+    }
+
+    /**
+     * Adds one reviewed photo to the gallery in the background, so the user can
+     * move straight on to the next one.
+     *
+     * @param region the part of the image to keep, or null to store it unchanged.
+     */
+    fun enqueueReviewedImport(galleryId: String, image: PickedImage, region: CropRegion?) {
+        scope.launch(ioDispatcher) {
+            reviewedImportMutex.withLock {
+                try {
+                    val directory = galleryDir(galleryId)
+                    val photo = if (region == null) {
+                        importer.importUnchanged(image, directory)
+                    } else {
+                        val shrinkToScreen = settings.settings.first().optimizeOnImport
+                        importer.importCropped(image, directory, region, shrinkToScreen)
+                    }
+                    if (!appendPhotos(galleryId, listOf(photo))) {
+                        // The gallery was deleted in the meantime.
+                        File(directory, photo.fileName).delete()
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Could not import reviewed photo", e)
+                }
+            }
+        }
+    }
+
+    /** Call when an import review ends; refreshes the cover once queued imports are done. */
+    fun onImportReviewFinished(galleryId: String) {
+        scope.launch {
+            // The mutex is fair, so this waits behind every import already queued.
+            reviewedImportMutex.withLock { }
+            refreshCover(galleryId)
         }
     }
 

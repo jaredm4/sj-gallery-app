@@ -49,4 +49,47 @@ class ImageScalingTest {
         val sliver = CropRegion(left = 1f, top = 1f, right = 1f, bottom = 1f)
         assertEquals(PixelRect(left = 9, top = 9, width = 1, height = 1), sliver.toPixelRect(10, 10))
     }
+
+    @Test
+    fun `centeredCropRegion trims the sides of an image that is too wide`() {
+        assertEquals(
+            CropRegion(left = 0.375f, top = 0f, right = 0.625f, bottom = 1f),
+            centeredCropRegion(4000, 2000, aspectRatio = 0.5f),
+        )
+    }
+
+    @Test
+    fun `centeredCropRegion trims top and bottom of an image that is too tall`() {
+        assertEquals(
+            CropRegion(left = 0f, top = 0.25f, right = 1f, bottom = 0.75f),
+            centeredCropRegion(1000, 4000, aspectRatio = 0.5f),
+        )
+    }
+
+    @Test
+    fun `centeredCropRegion keeps everything when the shape already matches`() {
+        assertEquals(CropRegion.Full, centeredCropRegion(1000, 2000, aspectRatio = 0.5f))
+    }
+
+    @Test
+    fun `decodeSizeForCrop decodes just enough for the cropped area to reach the output size`() {
+        // The crop is a quarter of the width: 1000 x 2000 px at full size.
+        val region = CropRegion(left = 0.375f, top = 0f, right = 0.625f, bottom = 1f)
+        assertEquals(PixelSize(2000, 1000), decodeSizeForCrop(4000, 2000, region, maxOutputEdge = 1000))
+    }
+
+    @Test
+    fun `decodeSizeForCrop never enlarges`() {
+        val region = CropRegion(left = 0.375f, top = 0f, right = 0.625f, bottom = 1f)
+        assertEquals(PixelSize(4000, 2000), decodeSizeForCrop(4000, 2000, region, maxOutputEdge = 5000))
+        assertEquals(PixelSize(4000, 2000), decodeSizeForCrop(4000, 2000, region, maxOutputEdge = null))
+    }
+
+    @Test
+    fun `decodeSizeForCrop respects the memory cap`() {
+        assertEquals(
+            PixelSize(5000, 5000),
+            decodeSizeForCrop(10_000, 10_000, CropRegion.Full, maxOutputEdge = null, maxPixels = 25_000_000),
+        )
+    }
 }

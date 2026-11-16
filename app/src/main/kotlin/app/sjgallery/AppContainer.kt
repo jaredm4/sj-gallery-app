@@ -4,6 +4,7 @@ import android.content.Context
 import android.hardware.display.DisplayManager
 import android.view.Display
 import app.sjgallery.data.GalleryRepository
+import app.sjgallery.data.PendingImports
 import app.sjgallery.data.crypto.CryptoManager
 import app.sjgallery.data.media.CoverGenerator
 import app.sjgallery.data.media.PhotoCropper
@@ -40,6 +41,8 @@ class AppContainer(context: Context) {
     val crypto = CryptoManager(wrappedKeyFile = File(appContext.filesDir, "keys/data.key"))
 
     val settings = SettingsRepository(appContext.settingsDataStore)
+
+    val pendingImports = PendingImports()
 
     val galleries = GalleryRepository(
         galleriesDir = File(appContext.filesDir, "galleries"),
